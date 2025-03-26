@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DeadlockPreventionButton from './components/DeadlockPreventionButton ';
 
 const DeadlockDetectionSimulator = () => {
-  // State for processes, resources, and allocation
+ 
   const [processes, setProcesses] = useState([
     { id: 'P1', color: 'bg-blue-500', resources: [], needsResource: null, status: 'running' },
     { id: 'P2', color: 'bg-green-500', resources: [], needsResource: null, status: 'running' },
@@ -25,9 +25,9 @@ const DeadlockDetectionSimulator = () => {
   const [aiThinking, setAiThinking] = useState(false);
   const [predictiveMode, setPredictiveMode] = useState(true);
 
-  // Function to detect deadlocks
+
   const detectDeadlock = () => {
-    // Create wait-for graph
+ 
     const waitForEdges = [];
     processes.forEach(process => {
       if (process.needsResource) {
@@ -46,7 +46,7 @@ const DeadlockDetectionSimulator = () => {
     
     setWaitForGraph(waitForEdges);
     
-    // Check for cycles in wait-for graph (deadlock)
+  
     const visited = new Set();
     const recStack = new Set();
     
@@ -61,7 +61,7 @@ const DeadlockDetectionSimulator = () => {
           if (!visited.has(neighbor) && hasCycle(neighbor, graph)) {
             return true;
           } else if (recStack.has(neighbor)) {
-            // Found a cycle
+          
             return true;
           }
         }
@@ -71,7 +71,7 @@ const DeadlockDetectionSimulator = () => {
       return false;
     };
     
-    // Check each process
+
     let hasDeadlock = false;
     for (const process of processes) {
       if (!visited.has(process.id) && hasCycle(process.id, waitForEdges)) {
@@ -90,14 +90,13 @@ const DeadlockDetectionSimulator = () => {
     return false;
   };
   
-  // AI prediction function
+ 
   const predictDeadlock = () => {
     if (!predictiveMode) return false;
     
     setAiThinking(true);
     setTimeout(() => {
-      // Simple prediction algorithm: if resources are almost fully allocated
-      // and multiple processes are waiting, deadlock is likely
+    
       
       const waitingProcesses = processes.filter(p => p.needsResource !== null).length;
       const resourceSaturation = resources.filter(r => 
@@ -117,22 +116,22 @@ const DeadlockDetectionSimulator = () => {
     }, 800);
   };
   
-  // Prevent or resolve deadlock
+ 
   const preventDeadlock = () => {
-    // Strategy: preemptively release a resource from the process that has the most
+   
     const processesCopy = [...processes];
     const resourcesCopy = [...resources];
     
-    // Find process with most resources that's part of a potential deadlock
+  
     const processesInDeadlock = processes.filter(p => p.needsResource !== null);
     
     if (processesInDeadlock.length === 0) return;
     
-    // Sort by number of resources held
+   
     processesInDeadlock.sort((a, b) => b.resources.length - a.resources.length);
     
     if (processesInDeadlock[0].resources.length === 0) {
-      // No resources to release, abort a process instead
+     
       const targetProcess = processesInDeadlock[0];
       const idx = processesCopy.findIndex(p => p.id === targetProcess.id);
       processesCopy[idx] = {
@@ -144,18 +143,18 @@ const DeadlockDetectionSimulator = () => {
       
       addAiLog(`🛑 AI Resolution: Process ${targetProcess.id} has been aborted to prevent deadlock.`);
     } else {
-      // Release a resource
+     
       const targetProcess = processesInDeadlock[0];
       const resourceToRelease = targetProcess.resources[0];
       
-      // Remove resource from process
+    
       const processIdx = processesCopy.findIndex(p => p.id === targetProcess.id);
       processesCopy[processIdx] = {
         ...processesCopy[processIdx],
         resources: processesCopy[processIdx].resources.filter(r => r !== resourceToRelease)
       };
       
-      // Update resource allocation
+    
       const resourceIdx = resourcesCopy.findIndex(r => r.id === resourceToRelease);
       resourcesCopy[resourceIdx] = {
         ...resourcesCopy[resourceIdx],
@@ -170,7 +169,6 @@ const DeadlockDetectionSimulator = () => {
     setDeadlockDetected(false);
   };
   
-  // Simulate a step in resource allocation
   const simulateStep = () => {
     if (deadlockDetected) {
       preventDeadlock();
@@ -180,7 +178,7 @@ const DeadlockDetectionSimulator = () => {
     const processesCopy = [...processes];
     const resourcesCopy = [...resources];
     
-    // Phase 1: Processes that need resources try to acquire them
+   
     processes.forEach((process, idx) => {
       if (process.status !== 'running') return;
       
@@ -189,9 +187,9 @@ const DeadlockDetectionSimulator = () => {
         if (resourceIdx >= 0) {
           const resource = resourcesCopy[resourceIdx];
           
-          // Check if resource is available
+         
           if (resource.allocatedTo.length < resource.instances) {
-            // Acquire resource
+           
             processesCopy[idx] = {
               ...process,
               resources: [...process.resources, resource.id],
@@ -209,11 +207,11 @@ const DeadlockDetectionSimulator = () => {
       }
     });
     
-    // Phase 2: Processes might release resources or request new ones
+   
     processesCopy.forEach((process, idx) => {
       if (process.status !== 'running') return;
       
-      // Random chance to release resources
+     
       if (process.resources.length > 0 && Math.random() < 0.2) {
         const releasedResource = process.resources[Math.floor(Math.random() * process.resources.length)];
         processesCopy[idx] = {
@@ -230,9 +228,9 @@ const DeadlockDetectionSimulator = () => {
         addAiLog(`📤 Process ${process.id} released ${releasedResource}`);
       }
       
-      // Random chance to request a new resource if not already waiting
+     
       if (process.needsResource === null && Math.random() < 0.3) {
-        // Find a resource not already held
+     
         const availableResources = resourcesCopy
           .filter(r => !process.resources.includes(r.id))
           .map(r => r.id);
@@ -252,16 +250,15 @@ const DeadlockDetectionSimulator = () => {
     setProcesses(processesCopy);
     setResources(resourcesCopy);
     
-    // Run deadlock detection
+   
     const hasDeadlock = detectDeadlock();
     
-    // If no deadlock, run prediction (if enabled)
+    
     if (!hasDeadlock) {
       predictDeadlock();
     }
   };
   
-  // Add a log entry
   const addAiLog = (message) => {
     setAiLogs(prev => [
       { id: Date.now(), message, timestamp: new Date().toLocaleTimeString() },
@@ -269,7 +266,7 @@ const DeadlockDetectionSimulator = () => {
     ]);
   };
   
-  // Reset simulation
+
   const resetSimulation = () => {
     setIsRunning(false);
     setDeadlockDetected(false);
@@ -290,7 +287,7 @@ const DeadlockDetectionSimulator = () => {
     addAiLog("🔄 Simulation reset");
   };
   
-  // Run simulation on interval
+ 
   useEffect(() => {
     let interval;
     if (isRunning) {
@@ -533,7 +530,7 @@ const DeadlockDetectionSimulator = () => {
                   const toIndex = processes.findIndex(p => p.id === edge.to);
                   
                   if (fromIndex >= 0 && toIndex >= 0) {
-                    const curve = 30 + (i % 3) * 10; // Varied curve to separate multiple edges
+                    const curve = 30 + (i % 3) * 10; 
                     
                     return (
                       <g key={`wait-${edge.from}-${edge.to}`}>
