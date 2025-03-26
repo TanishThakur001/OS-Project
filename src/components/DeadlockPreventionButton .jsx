@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
 
-// Prevention method button component that appears only during deadlock
+
 const DeadlockPreventionButton = ({ deadlockDetected, onPreventDeadlock, processes, resources }) => {
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationSteps, setSimulationSteps] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
   
-  // Function to generate prevention simulation when button is clicked
+  
   const generatePreventionSimulation = () => {
     setIsSimulating(true);
     
-    // Create copy of current state for simulation
+   
     const processesCopy = JSON.parse(JSON.stringify(processes));
     const resourcesCopy = JSON.parse(JSON.stringify(resources));
     
-    // Generate steps for the simulation
+    
     const steps = [];
     
-    // Step 1: Identify the deadlock
+  
     steps.push({
       description: "Identifying processes involved in deadlock...",
       processes: processesCopy,
@@ -25,7 +25,7 @@ const DeadlockPreventionButton = ({ deadlockDetected, onPreventDeadlock, process
       highlight: processes.filter(p => p.needsResource !== null).map(p => p.id)
     });
     
-    // Step 2: Find process with most resources that's part of the deadlock
+  
     const processesInDeadlock = processesCopy.filter(p => p.needsResource !== null);
     processesInDeadlock.sort((a, b) => b.resources.length - a.resources.length);
     const targetProcess = processesInDeadlock[0];
@@ -37,12 +37,12 @@ const DeadlockPreventionButton = ({ deadlockDetected, onPreventDeadlock, process
       highlight: [targetProcess.id]
     });
     
-    // Step 3: Implement prevention strategy
+ 
     const updatedProcesses = [...processesCopy];
     const updatedResources = [...resourcesCopy];
     
     if (targetProcess.resources.length === 0) {
-      // Abort process if it has no resources
+     
       const idx = updatedProcesses.findIndex(p => p.id === targetProcess.id);
       updatedProcesses[idx] = {
         ...updatedProcesses[idx],
@@ -58,10 +58,10 @@ const DeadlockPreventionButton = ({ deadlockDetected, onPreventDeadlock, process
         highlight: [targetProcess.id]
       });
     } else {
-      // Release a resource
+     
       const resourceToRelease = targetProcess.resources[0];
       
-      // Step 3a: Highlight resource to be released
+     
       steps.push({
         description: `Preempting resource ${resourceToRelease} from process ${targetProcess.id}...`,
         processes: processesCopy,
@@ -70,14 +70,14 @@ const DeadlockPreventionButton = ({ deadlockDetected, onPreventDeadlock, process
         highlightResource: resourceToRelease
       });
       
-      // Remove resource from process
+     
       const processIdx = updatedProcesses.findIndex(p => p.id === targetProcess.id);
       updatedProcesses[processIdx] = {
         ...updatedProcesses[processIdx],
         resources: updatedProcesses[processIdx].resources.filter(r => r !== resourceToRelease)
       };
       
-      // Update resource allocation
+     
       const resourceIdx = updatedResources.findIndex(r => r.id === resourceToRelease);
       updatedResources[resourceIdx] = {
         ...updatedResources[resourceIdx],
@@ -93,7 +93,7 @@ const DeadlockPreventionButton = ({ deadlockDetected, onPreventDeadlock, process
       });
     }
     
-    // Step 4: Show resolved state
+   
     steps.push({
       description: "System returned to stable state. Processes can continue execution.",
       processes: updatedProcesses,
@@ -105,21 +105,21 @@ const DeadlockPreventionButton = ({ deadlockDetected, onPreventDeadlock, process
     setCurrentStep(0);
   };
   
-  // Function to advance through simulation steps
+ 
   const nextStep = () => {
     if (currentStep < simulationSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // End simulation and apply prevention
+     
       setIsSimulating(false);
       onPreventDeadlock();
     }
   };
   
-  // If not in a deadlock, don't show the button
+
   if (!deadlockDetected) return null;
   
-  // If currently simulating, show the simulation
+
   if (isSimulating) {
     const step = simulationSteps[currentStep];
     
@@ -264,7 +264,7 @@ const DeadlockPreventionButton = ({ deadlockDetected, onPreventDeadlock, process
     );
   }
   
-  // Otherwise, show the prevention button
+
   return (
     <div className="mt-4">
       <button 
